@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vocabulary Game – Decentralization</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+*{font-family:'Be Vietnam Pro',sans-serif;box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0}
+:root{--bg:#A8DADC;--white:#FFFFFF;--pink:#FFAFCC;--dark:#1a2a3a;--accent:#457B9D;--success:#2ecc71;--error:#e74c3c}
+.fade-in{animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card-hover{transition:transform .2s,box-shadow .2s}
+.card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.12)}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 28px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary:hover{filter:brightness(1.1);transform:scale(1.03)}
+.btn-pink{background:var(--pink);color:var(--dark);border:none;border-radius:12px;padding:12px 28px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-pink:hover{filter:brightness(.95);transform:scale(1.03)}
+.progress-bar{height:8px;background:#e0e0e0;border-radius:9999px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--pink));border-radius:9999px;transition:width .5s ease}
+.option-btn{border:2px solid #ddd;border-radius:12px;padding:14px 18px;cursor:pointer;transition:all .2s;background:#fff;text-align:left;width:100%;font-size:15px}
+.option-btn:hover{border-color:var(--accent);background:#f0f8ff}
+.option-btn.correct{border-color:var(--success);background:#d4edda;animation:pulse .4s}
+.option-btn.wrong{border-color:var(--error);background:#f8d7da}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+.confetti{position:fixed;pointer-events:none;z-index:9999}
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.input-field{border:2px solid #ddd;border-radius:12px;padding:12px 16px;font-size:16px;width:100%;transition:border-color .2s;outline:none}
+.input-field:focus{border-color:var(--accent)}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:12px;color:#fff;font-weight:600;z-index:9999;animation:toastIn .4s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.vocab-card{background:#fff;border-radius:16px;padding:20px;margin-bottom:16px;border-left:4px solid var(--accent)}
+.section-tag{font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.match-item{border:2px solid #ddd;border-radius:10px;padding:10px 14px;cursor:pointer;transition:all .2s;background:#fff;font-size:14px}
+.match-item.selected{border-color:var(--accent);background:#e8f4f8}
+.match-item.matched{border-color:var(--success);background:#d4edda;pointer-events:none}
+.match-item.wrong-match{border-color:var(--error);background:#f8d7da}
+.spinner{width:40px;height:40px;border:3px solid #e0e0e0;border-top:3px solid var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+ </head>
+ <body class="h-full" style="background:linear-gradient(135deg,#A8DADC 0%,#e8f4f8 50%,#FFAFCC33 100%)">
+  <div id="app" class="h-full w-full overflow-auto"></div>
+  <script>
+console.log("✅ Game initialized – Vocabulary Decentralization");
+
+// ===== VOCABULARY DATABASE =====
+// Chủ đề: Decentralization – IELTS 7.0 Target
+const VOCAB = [
+  {
+    id:1, en:'mitigate overcrowding', ipa:'/ˈmɪt.ɪ.ɡeɪt ˌəʊ.vəˈkraʊ.dɪŋ/', pos:'v phrase',
+    vi:'Giảm quá tải dân số',
+    enDef:'To reduce or lessen the effects of excessive population density in an area',
+    collocations:['mitigate overcrowding in cities','policies to mitigate overcrowding','mitigate urban overcrowding','help mitigate overcrowding'],
+    collocationVi:['giảm quá tải dân số ở đô thị','chính sách giảm quá tải','giảm quá tải đô thị','giúp giảm quá tải dân số'],
+    synonyms:['reduce congestion','ease population pressure','relieve crowding'],
+    synonymsVi:['giảm tắc nghẽn','giảm áp lực dân số','giảm mật độ đông đúc'],
+    antonyms:['worsen overcrowding','increase density','aggravate congestion'],
+    antonymsVi:['làm trầm trọng thêm quá tải','tăng mật độ','làm tệ hơn tình trạng tắc nghẽn'],
+    wordFamily:['mitigate (v)','mitigation (n)','overcrowded (adj)','overcrowding (n)'],
+    wordFamilyVi:['giảm nhẹ (động từ)','sự giảm nhẹ (danh từ)','đông đúc quá mức (tính từ)','sự quá tải (danh từ)'],
+    example:'"Decentralization policies help mitigate overcrowding in major metropolitan areas."',
+    exampleVi:'"Các chính sách phân quyền giúp giảm quá tải dân số tại các đô thị lớn."',
+    usage:'mitigate + overcrowding / pressure / effects'
+  },
+  {
+    id:2, en:'reduce pressure on housing', ipa:'/rɪˈdjuːs ˈpreʃ.ər ɒn ˈhaʊ.zɪŋ/', pos:'v phrase',
+    vi:'Giảm áp lực lên nhà ở',
+    enDef:'To lessen the strain on housing supply caused by high urban population demand',
+    collocations:['reduce pressure on housing systems','reduce housing pressure significantly','reduce pressure on urban housing','help reduce pressure'],
+    collocationVi:['giảm áp lực lên hệ thống nhà ở','giảm đáng kể áp lực nhà ở','giảm áp lực nhà ở đô thị','giúp giảm áp lực'],
+    synonyms:['ease housing demand','relieve housing shortage','lessen housing burden'],
+    synonymsVi:['giảm nhu cầu nhà ở','giảm tình trạng thiếu nhà','giảm gánh nặng nhà ở'],
+    antonyms:['increase housing pressure','worsen housing shortage','strain housing supply'],
+    antonymsVi:['tăng áp lực nhà ở','làm trầm trọng thêm thiếu nhà','gây áp lực lên nguồn cung nhà ở'],
+    wordFamily:['pressure (n)','pressurize (v)','housing (n)','reduce (v)'],
+    wordFamilyVi:['áp lực (danh từ)','tạo áp lực (động từ)','nhà ở (danh từ)','giảm (động từ)'],
+    example:'"Moving government offices to smaller cities can significantly reduce pressure on housing in the capital."',
+    exampleVi:'"Chuyển các văn phòng chính phủ đến các thành phố nhỏ hơn có thể giảm đáng kể áp lực lên nhà ở ở thủ đô."',
+    usage:'reduce pressure on + N'
+  },
+  {
+    id:3, en:'traffic congestion', ipa:'/ˈtræf.ɪk kənˈdʒes.tʃən/', pos:'n',
+    vi:'Tắc nghẽn giao thông',
+    enDef:'The state of roads being so full of vehicles that traffic moves very slowly or not at all',
+    collocations:['severe traffic congestion','ease traffic congestion','traffic congestion in peak hours','cause traffic congestion'],
+    collocationVi:['tắc nghẽn giao thông nghiêm trọng','giảm tắc nghẽn giao thông','tắc nghẽn vào giờ cao điểm','gây tắc nghẽn giao thông'],
+    synonyms:['gridlock','traffic jam','road congestion','heavy traffic'],
+    synonymsVi:['kẹt xe hoàn toàn','kẹt xe','tắc đường','giao thông đông đúc'],
+    antonyms:['free-flowing traffic','clear roads','smooth traffic'],
+    antonymsVi:['giao thông thông thoáng','đường thông','giao thông suôn sẻ'],
+    wordFamily:['congested (adj)','congest (v)','congestion (n)'],
+    wordFamilyVi:['tắc nghẽn (tính từ)','làm tắc nghẽn (động từ)','sự tắc nghẽn (danh từ)'],
+    example:'"Traffic congestion is a major urban issue that decentralization aims to address."',
+    exampleVi:'"Tắc nghẽn giao thông là vấn đề đô thị lớn mà phân quyền nhằm giải quyết."'
+  },
+  {
+    id:4, en:'land and property prices', ipa:'/lænd ænd ˈprɒp.ə.ti ˈpraɪ.sɪz/', pos:'n phrase',
+    vi:'Giá đất và bất động sản',
+    enDef:'The monetary value of land plots and real estate in a given location',
+    collocations:['rising land and property prices','lower land and property prices','land and property prices in rural areas','regulate land prices'],
+    collocationVi:['giá đất và bất động sản tăng','giá đất và bất động sản thấp hơn','giá đất ở vùng nông thôn','điều tiết giá đất'],
+    synonyms:['real estate costs','property values','housing prices','land costs'],
+    synonymsVi:['chi phí bất động sản','giá trị tài sản','giá nhà ở','chi phí đất đai'],
+    antonyms:['affordable land','subsidized property','cheap real estate'],
+    antonymsVi:['đất giá rẻ','bất động sản được trợ cấp','bất động sản giá rẻ'],
+    wordFamily:['property (n)','proprietor (n)','land (n)','price (n/v)'],
+    wordFamilyVi:['tài sản (danh từ)','chủ sở hữu (danh từ)','đất đai (danh từ)','giá/định giá (danh từ/động từ)'],
+    example:'"Land and property prices in rural areas are typically much lower than in major cities."',
+    exampleVi:'"Giá đất và bất động sản ở vùng nông thôn thường thấp hơn nhiều so với các thành phố lớn."'
+  },
+  {
+    id:5, en:'reduced costs', ipa:'/rɪˈdjuːst kɒsts/', pos:'n phrase',
+    vi:'Chi phí giảm',
+    enDef:'Lower expenses resulting from moving to or operating in areas with cheaper resources',
+    collocations:['reduced operating costs','significantly reduced costs','enjoy reduced costs','lead to reduced costs'],
+    collocationVi:['chi phí vận hành giảm','chi phí giảm đáng kể','hưởng chi phí giảm','dẫn đến chi phí giảm'],
+    synonyms:['lower costs','cost savings','cheaper expenses','cost reduction'],
+    synonymsVi:['chi phí thấp hơn','tiết kiệm chi phí','chi tiêu rẻ hơn','giảm chi phí'],
+    antonyms:['increased costs','higher expenses','rising costs','cost overruns'],
+    antonymsVi:['chi phí tăng','chi tiêu cao hơn','chi phí tăng','vượt chi phí'],
+    wordFamily:['reduce (v)','reduction (n)','cost (n)','cost-effective (adj)'],
+    wordFamilyVi:['giảm (động từ)','sự giảm (danh từ)','chi phí (danh từ)','tiết kiệm chi phí (tính từ)'],
+    example:'"Businesses relocating to suburban areas benefit from reduced costs in rent and labor."',
+    exampleVi:'"Các doanh nghiệp chuyển đến vùng ngoại ô được hưởng lợi từ chi phí giảm về thuê mặt bằng và lao động."'
+  },
+  {
+    id:6, en:'infrastructure improvements', ipa:'/ˈɪn.frəˌstrʌk.tʃər ɪmˈpruːv.mənts/', pos:'n phrase',
+    vi:'Cải thiện cơ sở hạ tầng',
+    enDef:'Enhancements made to basic physical systems like roads, utilities, and public services in an area',
+    collocations:['infrastructure improvements in rural areas','fund infrastructure improvements','major infrastructure improvements','infrastructure improvements boost growth'],
+    collocationVi:['cải thiện hạ tầng ở nông thôn','tài trợ cải thiện hạ tầng','cải thiện hạ tầng lớn','cải thiện hạ tầng thúc đẩy tăng trưởng'],
+    synonyms:['infrastructure development','public works upgrades','facility enhancements'],
+    synonymsVi:['phát triển hạ tầng','nâng cấp công trình công cộng','cải thiện cơ sở vật chất'],
+    antonyms:['infrastructure neglect','deteriorating infrastructure','underfunded systems'],
+    antonymsVi:['bỏ bê hạ tầng','hạ tầng xuống cấp','hệ thống thiếu vốn'],
+    wordFamily:['infrastructure (n)','improve (v)','improvement (n)','improved (adj)'],
+    wordFamilyVi:['cơ sở hạ tầng (danh từ)','cải thiện (động từ)','sự cải thiện (danh từ)','được cải thiện (tính từ)'],
+    example:'"Infrastructure improvements in smaller cities attract businesses and residents away from overcrowded capitals."',
+    exampleVi:'"Cải thiện cơ sở hạ tầng ở các thành phố nhỏ thu hút doanh nghiệp và cư dân rời khỏi các thủ đô quá tải."',
+    usage:'infrastructure improvements in / to + N'
+  },
+  {
+    id:7, en:'elevate living standards', ipa:'/ˈel.ɪ.veɪt ˈlɪv.ɪŋ ˈstæn.dədz/', pos:'v phrase',
+    vi:'Nâng cao mức sống',
+    enDef:'To raise the quality of life and material well-being of people in a region',
+    collocations:['elevate living standards in rural areas','policies that elevate living standards','elevate living standards significantly','help elevate standards'],
+    collocationVi:['nâng cao mức sống ở nông thôn','chính sách nâng cao mức sống','nâng cao đáng kể mức sống','giúp nâng cao tiêu chuẩn'],
+    synonyms:['improve quality of life','raise living standards','enhance well-being','boost welfare'],
+    synonymsVi:['cải thiện chất lượng cuộc sống','nâng cao mức sống','tăng cường phúc lợi','thúc đẩy phúc lợi'],
+    antonyms:['lower living standards','reduce quality of life','diminish well-being'],
+    antonymsVi:['hạ thấp mức sống','giảm chất lượng cuộc sống','làm giảm phúc lợi'],
+    wordFamily:['elevate (v)','elevation (n)','standard (n)','living (adj/n)'],
+    wordFamilyVi:['nâng cao (động từ)','sự nâng cao (danh từ)','tiêu chuẩn (danh từ)','sống/cuộc sống (tính từ/danh từ)'],
+    example:'"Decentralization can elevate living standards in underdeveloped regions by bringing investment and jobs."',
+    exampleVi:'"Phân quyền có thể nâng cao mức sống ở các vùng kém phát triển bằng cách thu hút đầu tư và tạo việc làm."',
+    usage:'elevate + living standards / quality of life'
+  },
+  {
+    id:8, en:'an influx of businesses', ipa:'/ən ˈɪn.flʌks əv ˈbɪz.nɪ.sɪz/', pos:'n phrase',
+    vi:'Làn sóng doanh nghiệp đổ về',
+    enDef:'A large number of companies arriving in or moving to a new location in a short period',
+    collocations:['an influx of businesses into rural areas','attract an influx of businesses','sudden influx of businesses','an influx of foreign businesses'],
+    collocationVi:['làn sóng doanh nghiệp đổ về nông thôn','thu hút làn sóng doanh nghiệp','làn sóng đột ngột của doanh nghiệp','làn sóng doanh nghiệp nước ngoài'],
+    synonyms:['a wave of businesses','business migration','a rush of companies','business influx'],
+    synonymsVi:['làn sóng doanh nghiệp','di cư doanh nghiệp','dòng công ty đổ về','sự đổ về của doanh nghiệp'],
+    antonyms:['business exodus','company departures','business flight'],
+    antonymsVi:['làn sóng doanh nghiệp rời đi','sự rút lui của công ty','dòng doanh nghiệp bỏ đi'],
+    wordFamily:['influx (n)','inflow (n)','business (n)','relocate (v)'],
+    wordFamilyVi:['làn sóng đổ vào (danh từ)','dòng chảy vào (danh từ)','doanh nghiệp (danh từ)','di dời (động từ)'],
+    example:'"Incentive policies led to an influx of businesses moving to the new economic zone."',
+    exampleVi:'"Các chính sách ưu đãi dẫn đến làn sóng doanh nghiệp chuyển đến khu kinh tế mới."',
+    usage:'an influx of + N (people / businesses / tourists)'
+  },
+  {
+    id:9, en:'put a strain on resources', ipa:'/pʊt ə streɪn ɒn rɪˈzɔː.sɪz/', pos:'v phrase',
+    vi:'Gây áp lực lên tài nguyên',
+    enDef:'To place excessive demand on available resources, infrastructure, or services',
+    collocations:['put a strain on local resources','put a strain on public services','put a strain on infrastructure','put a severe strain on'],
+    collocationVi:['gây áp lực lên tài nguyên địa phương','gây áp lực lên dịch vụ công','gây áp lực lên cơ sở hạ tầng','gây áp lực nghiêm trọng lên'],
+    synonyms:['overburden resources','overwhelm facilities','tax the system','overload capacity'],
+    synonymsVi:['làm quá tải tài nguyên','áp đảo cơ sở vật chất','tạo gánh nặng cho hệ thống','quá tải công suất'],
+    antonyms:['ease pressure on resources','relieve strain','support resources'],
+    antonymsVi:['giảm áp lực lên tài nguyên','giảm bớt căng thẳng','hỗ trợ tài nguyên'],
+    wordFamily:['strain (n/v)','resource (n)','put (v)'],
+    wordFamilyVi:['áp lực/gây áp lực (danh từ/động từ)','tài nguyên (danh từ)','đặt/gây ra (động từ)'],
+    example:'"Rapid population growth in small towns can put a strain on resources and local services."',
+    exampleVi:'"Tăng trưởng dân số nhanh ở các thị trấn nhỏ có thể gây áp lực lên tài nguyên và dịch vụ địa phương."',
+    usage:'put a strain on + N'
+  },
+  {
+    id:10, en:'rising rental prices', ipa:'/ˈraɪ.zɪŋ ˈren.təl ˈpraɪ.sɪz/', pos:'n phrase',
+    vi:'Giá thuê tăng',
+    enDef:'Increasing costs for renting homes or commercial spaces, often driven by high demand',
+    collocations:['rising rental prices in cities','rising rental prices due to demand','combat rising rental prices','rising rental prices affect workers'],
+    collocationVi:['giá thuê tăng ở các thành phố','giá thuê tăng do nhu cầu','chống lại giá thuê tăng','giá thuê tăng ảnh hưởng đến người lao động'],
+    synonyms:['soaring rents','increasing rental costs','climbing property rates','escalating rent'],
+    synonymsVi:['giá thuê tăng vọt','chi phí thuê tăng','tỷ lệ tài sản leo thang','giá thuê leo thang'],
+    antonyms:['falling rental prices','affordable rents','stable rental market'],
+    antonymsVi:['giá thuê giảm','giá thuê chấp nhận được','thị trường cho thuê ổn định'],
+    wordFamily:['rent (n/v)','rental (n/adj)','price (n)','rise (v)'],
+    wordFamilyVi:['tiền thuê (danh từ/động từ)','thuê/cho thuê (danh từ/tính từ)','giá (danh từ)','tăng (động từ)'],
+    example:'"Rising rental prices in the capital are forcing many workers to seek accommodation in surrounding areas."',
+    exampleVi:'"Giá thuê tăng ở thủ đô đang buộc nhiều người lao động tìm chỗ ở ở các vùng lân cận."'
+  },
+  {
+    id:11, en:'shift problems', ipa:'/ʃɪft ˈprɒb.ləmz/', pos:'v phrase',
+    vi:'Chuyển vấn đề',
+    enDef:'To transfer difficulties or challenges from one location or context to another rather than solving them',
+    collocations:['shift problems to rural areas','shift problems elsewhere','merely shift problems','shift the burden of problems'],
+    collocationVi:['chuyển vấn đề sang vùng nông thôn','chuyển vấn đề sang nơi khác','chỉ chuyển vấn đề','chuyển gánh nặng vấn đề'],
+    synonyms:['transfer problems','displace issues','relocate difficulties','move problems'],
+    synonymsVi:['chuyển giao vấn đề','di dời vấn đề','chuyển khó khăn','dịch chuyển vấn đề'],
+    antonyms:['solve problems','address root causes','resolve issues','fix problems'],
+    antonymsVi:['giải quyết vấn đề','giải quyết nguyên nhân gốc rễ','giải quyết các vấn đề','khắc phục vấn đề'],
+    wordFamily:['shift (n/v)','problem (n)','problematic (adj)'],
+    wordFamilyVi:['sự dịch chuyển/dịch chuyển (danh từ/động từ)','vấn đề (danh từ)','có vấn đề (tính từ)'],
+    example:'"Critics argue that decentralization merely shifts problems from cities to smaller towns without solving them."',
+    exampleVi:'"Các nhà phê bình cho rằng phân quyền chỉ chuyển vấn đề từ thành phố sang các thị trấn nhỏ mà không giải quyết được chúng."',
+    usage:'shift + problems / burden / responsibility'
+  },
+  {
+    id:12, en:'incur additional costs', ipa:'/ɪnˈkɜːr əˈdɪʃ.ə.nəl kɒsts/', pos:'v phrase',
+    vi:'Phát sinh chi phí bổ sung',
+    enDef:'To bring upon oneself extra expenses, especially unexpected or unavoidable ones during relocation',
+    collocations:['incur additional costs when relocating','incur significant additional costs','incur costs due to distance','businesses incur additional costs'],
+    collocationVi:['phát sinh chi phí khi di dời','phát sinh chi phí bổ sung đáng kể','phát sinh chi phí do khoảng cách','doanh nghiệp phát sinh chi phí bổ sung'],
+    synonyms:['face extra expenses','bear additional costs','take on more costs','encounter new costs'],
+    synonymsVi:['đối mặt với chi phí bổ sung','chịu chi phí thêm','gánh thêm chi phí','gặp phải chi phí mới'],
+    antonyms:['save money','reduce costs','avoid extra expenses','cut costs'],
+    antonymsVi:['tiết kiệm tiền','giảm chi phí','tránh chi phí bổ sung','cắt giảm chi phí'],
+    wordFamily:['incur (v)','cost (n)','additional (adj)','expenditure (n)'],
+    wordFamilyVi:['phát sinh (động từ)','chi phí (danh từ)','bổ sung (tính từ)','chi tiêu (danh từ)'],
+    example:'"Companies that relocate to new regions may incur additional costs for building new supply chains."',
+    exampleVi:'"Các công ty di dời đến các vùng mới có thể phát sinh chi phí bổ sung để xây dựng chuỗi cung ứng mới."',
+    usage:'incur + costs / losses / expenses'
+  },
+  {
+    id:13, en:'construct facilities from scratch', ipa:'/kənˈstrʌkt fəˈsɪl.ɪ.tɪz frɒm skrætʃ/', pos:'v phrase',
+    vi:'Xây dựng cơ sở vật chất từ đầu',
+    enDef:'To build or create all necessary physical facilities starting from nothing, with no existing structures',
+    collocations:['construct facilities from scratch in new areas','forced to construct from scratch','construct offices from scratch','build infrastructure from scratch'],
+    collocationVi:['xây dựng cơ sở từ đầu ở vùng mới','buộc phải xây từ đầu','xây dựng văn phòng từ đầu','xây dựng hạ tầng từ đầu'],
+    synonyms:['build from the ground up','create new infrastructure','develop anew','start from zero'],
+    synonymsVi:['xây từ nền móng','tạo hạ tầng mới','phát triển lại','bắt đầu từ không'],
+    antonyms:['renovate existing buildings','refurbish facilities','use existing infrastructure'],
+    antonymsVi:['cải tạo tòa nhà hiện có','tân trang cơ sở vật chất','sử dụng hạ tầng hiện có'],
+    wordFamily:['construct (v)','construction (n)','facility (n)','scratch (n)'],
+    wordFamilyVi:['xây dựng (động từ)','công trình xây dựng (danh từ)','cơ sở vật chất (danh từ)','từ đầu (danh từ)'],
+    example:'"In underdeveloped areas, companies must construct facilities from scratch, which increases relocation costs."',
+    exampleVi:'"Ở các vùng kém phát triển, doanh nghiệp phải xây dựng cơ sở vật chất từ đầu, điều này tăng chi phí di dời."',
+    usage:'construct / build + N + from scratch'
+  },
+  {
+    id:14, en:'establish supply chains', ipa:'/ɪˈstæb.lɪʃ səˈplaɪ tʃeɪnz/', pos:'v phrase',
+    vi:'Thiết lập chuỗi cung ứng',
+    enDef:'To set up the network of suppliers, producers, and distributors needed to deliver goods or services',
+    collocations:['establish new supply chains','establish supply chains in rural regions','time to establish supply chains','establish local supply chains'],
+    collocationVi:['thiết lập chuỗi cung ứng mới','thiết lập chuỗi cung ứng ở nông thôn','thời gian thiết lập chuỗi cung ứng','thiết lập chuỗi cung ứng địa phương'],
+    synonyms:['set up supply networks','build distribution channels','create logistics systems'],
+    synonymsVi:['thiết lập mạng lưới cung cấp','xây dựng kênh phân phối','tạo hệ thống logistics'],
+    antonyms:['dismantle supply chains','break supply networks','disrupt logistics'],
+    antonymsVi:['giải thể chuỗi cung ứng','phá vỡ mạng cung cấp','phá vỡ logistics'],
+    wordFamily:['establish (v)','establishment (n)','supply (n/v)','chain (n)'],
+    wordFamilyVi:['thiết lập (động từ)','sự thiết lập (danh từ)','nguồn cung/cung cấp (danh từ/động từ)','chuỗi (danh từ)'],
+    example:'"Relocating a company requires time and investment to establish supply chains in the new location."',
+    exampleVi:'"Việc di dời công ty đòi hỏi thời gian và đầu tư để thiết lập chuỗi cung ứng tại địa điểm mới."',
+    usage:'establish + supply chains / networks / systems'
+  },
+  {
+    id:15, en:'offer higher salaries', ipa:'/ˈɒf.ər ˈhaɪ.ər ˈsæl.ər.iz/', pos:'v phrase',
+    vi:'Trả lương cao hơn',
+    enDef:'To provide workers with greater financial compensation to attract or retain them in a new location',
+    collocations:['offer higher salaries to attract talent','must offer higher salaries','offer competitive salaries','offer higher salaries to relocate staff'],
+    collocationVi:['trả lương cao hơn để thu hút nhân tài','phải trả lương cao hơn','trả lương cạnh tranh','trả lương cao hơn để di dời nhân viên'],
+    synonyms:['pay higher wages','provide better compensation','offer competitive pay','increase remuneration'],
+    synonymsVi:['trả lương cao hơn','cung cấp thù lao tốt hơn','trả lương cạnh tranh','tăng thù lao'],
+    antonyms:['cut salaries','reduce wages','offer lower pay','decrease compensation'],
+    antonymsVi:['cắt giảm lương','giảm lương','trả lương thấp hơn','giảm thù lao'],
+    wordFamily:['offer (v)','salary (n)','compensation (n)','wage (n)'],
+    wordFamilyVi:['đề nghị (động từ)','lương (danh từ)','thù lao (danh từ)','tiền công (danh từ)'],
+    example:'"Firms relocating to rural areas must offer higher salaries to convince skilled workers to move."',
+    exampleVi:'"Các công ty di dời đến vùng nông thôn phải trả lương cao hơn để thuyết phục người lao động có kỹ năng chuyển đến."',
+    usage:'offer + higher salaries / better benefits / incentives'
+  },
+  {
+    id:16, en:'relocate employees', ipa:'/ˌriː.ləʊˈkeɪt ɪmˈplɔɪ.iːz/', pos:'v phrase',
+    vi:'Di dời nhân viên',
+    enDef:'To transfer workers from one location to another as part of a business or organizational move',
+    collocations:['relocate employees to new offices','persuade employees to relocate','assistance to relocate employees','employees must relocate'],
+    collocationVi:['di dời nhân viên đến văn phòng mới','thuyết phục nhân viên di dời','hỗ trợ di dời nhân viên','nhân viên phải di dời'],
+    synonyms:['transfer staff','move workers','redeploy employees','reassign personnel'],
+    synonymsVi:['chuyển công tác nhân viên','di chuyển người lao động','tái phân công nhân viên','phân công lại nhân sự'],
+    antonyms:['retain employees','keep staff in place','maintain workforce location'],
+    antonymsVi:['giữ chân nhân viên','giữ nhân viên tại chỗ','duy trì vị trí lực lượng lao động'],
+    wordFamily:['relocate (v)','relocation (n)','employee (n)','transfer (v/n)'],
+    wordFamilyVi:['di dời (động từ)','sự di dời (danh từ)','nhân viên (danh từ)','chuyển giao (động từ/danh từ)'],
+    example:'"Asking workers to relocate employees away from their families is one major challenge of decentralization."',
+    exampleVi:'"Yêu cầu người lao động di dời xa gia đình là một trong những thách thức lớn của phân quyền."',
+    usage:'relocate + employees / staff / operations + to + place'
+  },
+  {
+    id:17, en:'initial savings', ipa:'/ɪˈnɪʃ.əl ˈseɪ.vɪŋz/', pos:'n phrase',
+    vi:'Tiết kiệm ban đầu',
+    enDef:'The money saved at the beginning of a process or project, which may not reflect long-term financial outcomes',
+    collocations:['initial savings seem attractive','initial savings are offset by','initial cost savings','initial savings in rent'],
+    collocationVi:['tiết kiệm ban đầu có vẻ hấp dẫn','tiết kiệm ban đầu bị bù đắp bởi','tiết kiệm chi phí ban đầu','tiết kiệm tiền thuê ban đầu'],
+    synonyms:['upfront savings','early cost reductions','short-term savings','preliminary savings'],
+    synonymsVi:['tiết kiệm trước mắt','giảm chi phí ban đầu','tiết kiệm ngắn hạn','tiết kiệm sơ bộ'],
+    antonyms:['long-term costs','eventual expenses','ongoing costs'],
+    antonymsVi:['chi phí dài hạn','chi phí cuối cùng','chi phí liên tục'],
+    wordFamily:['initial (adj)','initially (adv)','save (v)','savings (n)'],
+    wordFamilyVi:['ban đầu (tính từ)','lúc đầu (trạng từ)','tiết kiệm (động từ)','khoản tiết kiệm (danh từ)'],
+    example:'"The initial savings from moving to a cheaper location were quickly overshadowed by hidden costs."',
+    exampleVi:'"Khoản tiết kiệm ban đầu từ việc chuyển đến địa điểm rẻ hơn nhanh chóng bị lấn át bởi các chi phí ẩn."',
+    usage:'initial savings + may be / are overshadowed by'
+  },
+  {
+    id:18, en:'be overshadowed by', ipa:'/bi ˌəʊ.vəˈʃæd.əʊd baɪ/', pos:'v phrase',
+    vi:'Bị lấn át bởi',
+    enDef:'To be made less important or significant by something else, especially something negative',
+    collocations:['be overshadowed by hidden costs','be overshadowed by negative impacts','initial benefits are overshadowed by','savings are overshadowed by expenses'],
+    collocationVi:['bị lấn át bởi chi phí ẩn','bị lấn át bởi tác động tiêu cực','lợi ích ban đầu bị lấn át bởi','tiết kiệm bị lấn át bởi chi tiêu'],
+    synonyms:['be outweighed by','be eclipsed by','be negated by','be cancelled out by'],
+    synonymsVi:['bị vượt trội bởi','bị che khuất bởi','bị phủ nhận bởi','bị triệt tiêu bởi'],
+    antonyms:['outweigh','overshadow','surpass','exceed'],
+    antonymsVi:['vượt trội','che khuất','vượt qua','vượt hơn'],
+    wordFamily:['overshadow (v)','shadow (n)','overshadowing (adj)'],
+    wordFamilyVi:['che khuất/lấn át (động từ)','bóng tối (danh từ)','đang che khuất (tính từ)'],
+    example:'"The benefits of relocation were often be overshadowed by the unexpected difficulties workers faced."',
+    exampleVi:'"Những lợi ích của việc di dời thường bị lấn át bởi những khó khăn bất ngờ mà người lao động phải đối mặt."',
+    usage:'be overshadowed by + N'
+  },
+  {
+    id:19, en:'long daily commutes', ipa:'/lɒŋ ˈdeɪ.li kəˈmjuːts/', pos:'n phrase',
+    vi:'Đi làm xa mỗi ngày',
+    enDef:'The practice of travelling a great distance to and from work on a daily basis',
+    collocations:['endure long daily commutes','long daily commutes reduce productivity','avoid long commutes','long commutes exhaust workers'],
+    collocationVi:['chịu đựng việc đi làm xa hàng ngày','đi làm xa làm giảm năng suất','tránh đi lại xa','đi làm xa làm kiệt sức người lao động'],
+    synonyms:['lengthy journeys to work','extended daily travel','far commutes','time-consuming commutes'],
+    synonymsVi:['hành trình dài đến nơi làm việc','di chuyển hàng ngày kéo dài','đi làm xa','đi lại tốn thời gian'],
+    antonyms:['short commutes','nearby workplace','work-from-home','local employment'],
+    antonymsVi:['đi làm gần','nơi làm việc gần nhà','làm việc tại nhà','việc làm địa phương'],
+    wordFamily:['commute (v/n)','commuter (n)','daily (adj)','long-distance (adj)'],
+    wordFamilyVi:['đi lại/đường đi làm (động từ/danh từ)','người đi làm (danh từ)','hàng ngày (tính từ)','đường dài (tính từ)'],
+    example:'"Workers who refuse to relocate often face long daily commutes that affect their health and productivity."',
+    exampleVi:'"Người lao động từ chối di dời thường phải đối mặt với việc đi làm xa hàng ngày ảnh hưởng đến sức khỏe và năng suất."'
+  },
+  {
+    id:20, en:'job satisfaction', ipa:'/dʒɒb ˌsæt.ɪsˈfæk.ʃən/', pos:'n',
+    vi:'Sự hài lòng trong công việc',
+    enDef:'The feeling of fulfilment or contentment that a person derives from their work',
+    collocations:['job satisfaction decreases','improve job satisfaction','low job satisfaction','factors affecting job satisfaction'],
+    collocationVi:['sự hài lòng giảm','cải thiện sự hài lòng','sự hài lòng thấp','các yếu tố ảnh hưởng đến sự hài lòng'],
+    synonyms:['work fulfillment','employee contentment','work-life satisfaction','professional happiness'],
+    synonymsVi:['sự thỏa mãn trong công việc','sự hài lòng của nhân viên','sự hài lòng cuộc sống-công việc','hạnh phúc nghề nghiệp'],
+    antonyms:['job dissatisfaction','work frustration','professional discontent'],
+    antonymsVi:['sự không hài lòng trong công việc','sự thất vọng trong công việc','sự bất mãn nghề nghiệp'],
+    wordFamily:['satisfy (v)','satisfied (adj)','satisfaction (n)','satisfactory (adj)'],
+    wordFamilyVi:['thỏa mãn (động từ)','hài lòng (tính từ)','sự hài lòng (danh từ)','đạt yêu cầu (tính từ)'],
+    example:'"Forced relocation can lead to decreased job satisfaction as workers feel uprooted from their communities."',
+    exampleVi:'"Việc di dời cưỡng bức có thể dẫn đến giảm sự hài lòng trong công việc khi người lao động cảm thấy bị nhổ bật khỏi cộng đồng."'
+  },
+  {
+    id:21, en:'productivity', ipa:'/ˌprɒd.ʌkˈtɪv.ɪ.ti/', pos:'n',
+    vi:'Năng suất',
+    enDef:'The effectiveness of productive effort, especially in industry, measured in terms of output per unit of input',
+    collocations:['boost productivity','productivity decreases','maintain high productivity','productivity levels drop','worker productivity'],
+    collocationVi:['tăng năng suất','năng suất giảm','duy trì năng suất cao','mức năng suất giảm','năng suất người lao động'],
+    synonyms:['efficiency','output rate','work rate','performance level'],
+    synonymsVi:['hiệu quả','tỷ lệ đầu ra','tốc độ làm việc','mức hiệu suất'],
+    antonyms:['inefficiency','low output','unproductivity','idleness'],
+    antonymsVi:['kém hiệu quả','đầu ra thấp','không hiệu quả','sự lười biếng'],
+    wordFamily:['productive (adj)','produce (v)','production (n)','unproductive (adj)'],
+    wordFamilyVi:['hiệu quả (tính từ)','sản xuất (động từ)','sản xuất (danh từ)','kém hiệu quả (tính từ)'],
+    example:'"Long commutes and poor living conditions can severely impact workers\' productivity."',
+    exampleVi:'"Đi làm xa và điều kiện sống kém có thể ảnh hưởng nghiêm trọng đến năng suất của người lao động."'
+  },
+  {
+    id:22, en:'uproot their lives', ipa:'/ʌpˈruːt ðeər laɪvz/', pos:'v phrase',
+    vi:'Thay đổi toàn bộ cuộc sống',
+    enDef:'To force someone to leave their home or community and move to a completely unfamiliar place',
+    collocations:['uproot their lives completely','be forced to uproot their lives','uproot families','uproot themselves and move'],
+    collocationVi:['thay đổi hoàn toàn cuộc sống','bị buộc phải thay đổi cuộc sống','nhổ bật gốc rễ gia đình','tự mình thay đổi và chuyển đi'],
+    synonyms:['displace their lives','tear up their roots','force a major life change','disrupt their settled life'],
+    synonymsVi:['làm xáo trộn cuộc sống','cắt đứt gốc rễ','buộc thay đổi cuộc sống lớn','phá vỡ cuộc sống ổn định'],
+    antonyms:['stay put','remain rooted','keep their home','maintain stability'],
+    antonymsVi:['ở nguyên chỗ','duy trì gốc rễ','giữ nhà','duy trì ổn định'],
+    wordFamily:['uproot (v)','root (n)','uprooted (adj)','displacement (n)'],
+    wordFamilyVi:['nhổ bật gốc rễ (động từ)','gốc rễ (danh từ)','bị nhổ bật (tính từ)','sự di dời (danh từ)'],
+    example:'"Many workers resist relocation because they do not want to uproot their lives and leave their communities."',
+    exampleVi:'"Nhiều người lao động phản đối di dời vì họ không muốn thay đổi toàn bộ cuộc sống và rời bỏ cộng đồng của mình."',
+    usage:'uproot + lives / families / communities'
+  },
+  {
+    id:23, en:'lack of amenities', ipa:'/læk əv əˈmiː.nɪ.tɪz/', pos:'n phrase',
+    vi:'Thiếu tiện nghi',
+    enDef:'The absence of features that make a place comfortable and pleasant to live in, such as shops, parks, or entertainment',
+    collocations:['lack of amenities in rural areas','suffer from lack of amenities','lack of basic amenities','lack of amenities deters workers'],
+    collocationVi:['thiếu tiện nghi ở vùng nông thôn','chịu đựng sự thiếu tiện nghi','thiếu tiện nghi cơ bản','thiếu tiện nghi ngăn cản người lao động'],
+    synonyms:['absence of facilities','poor local services','limited conveniences','underdeveloped infrastructure'],
+    synonymsVi:['thiếu cơ sở vật chất','dịch vụ địa phương kém','tiện ích hạn chế','hạ tầng kém phát triển'],
+    antonyms:['abundance of amenities','well-equipped area','rich in facilities','full range of services'],
+    antonymsVi:['đầy đủ tiện nghi','khu vực được trang bị tốt','giàu cơ sở vật chất','đầy đủ dịch vụ'],
+    wordFamily:['amenity (n)','lack (v/n)'],
+    wordFamilyVi:['tiện nghi (danh từ)','thiếu/sự thiếu (động từ/danh từ)'],
+    example:'"A lack of amenities such as schools, hospitals, and entertainment options makes rural relocation unattractive."',
+    exampleVi:'"Sự thiếu tiện nghi như trường học, bệnh viện và các lựa chọn giải trí làm cho việc di dời về nông thôn kém hấp dẫn."',
+    usage:'lack of + amenities / resources / infrastructure'
+  },
+  {
+    id:24, en:'educational resources', ipa:'/ˌed.jʊˈkeɪ.ʃən.əl rɪˈzɔː.sɪz/', pos:'n phrase',
+    vi:'Tài nguyên giáo dục',
+    enDef:'The materials, tools, facilities, and funding available to support learning and teaching in schools',
+    collocations:['lack of educational resources','access to educational resources','educational resources in rural schools','improve educational resources'],
+    collocationVi:['thiếu tài nguyên giáo dục','tiếp cận tài nguyên giáo dục','tài nguyên giáo dục ở trường nông thôn','cải thiện tài nguyên giáo dục'],
+    synonyms:['learning materials','school facilities','teaching resources','academic support'],
+    synonymsVi:['tài liệu học tập','cơ sở vật chất trường học','tài nguyên giảng dạy','hỗ trợ học thuật'],
+    antonyms:['resource-rich schools','well-funded education','abundant learning materials'],
+    antonymsVi:['trường học giàu tài nguyên','giáo dục được tài trợ tốt','tài liệu học tập dồi dào'],
+    wordFamily:['educate (v)','education (n)','educational (adj)','resource (n)'],
+    wordFamilyVi:['giáo dục (động từ)','giáo dục (danh từ)','có tính giáo dục (tính từ)','tài nguyên (danh từ)'],
+    example:'"Workers with families are reluctant to relocate to areas with poor educational resources for their children."',
+    exampleVi:'"Người lao động có gia đình ngần ngại di dời đến các khu vực có tài nguyên giáo dục kém cho con cái họ."',
+    usage:'educational resources in / for + N'
+  }
+];
+
+// ===== AUDIO =====
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function getAudioCtx(){
+  try{if(!audioCtx)audioCtx=new AudioCtx();return audioCtx}catch(e){console.warn("Audio context failed:",e);return null}
+}
+function playDing(){
+  try{
+    const c=getAudioCtx();if(!c)return;
+    const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.value=880;g.gain.value=0.3;o.start();g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5);o.stop(c.currentTime+0.5)
+  }catch(e){console.warn("Ding failed:",e)}
+}
+function playBuzz(){
+  try{
+    const c=getAudioCtx();if(!c)return;
+    const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.value=150;g.gain.value=0.15;o.start();g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);o.stop(c.currentTime+0.3)
+  }catch(e){console.warn("Buzz failed:",e)}
+}
+function speakWord(word){
+  try{
+    if(!window.speechSynthesis)return;
+    const u=new SpeechSynthesisUtterance(word);u.lang='en-US';u.rate=0.85;speechSynthesis.speak(u)
+  }catch(e){console.warn("Speech failed:",e)}
+}
+
+// ===== CONFETTI =====
+function showConfetti(){
+  const c=document.createElement('div');c.className='confetti';document.body.appendChild(c);
+  for(let i=0;i<30;i++){
+    const p=document.createElement('div');
+    p.style.cssText=`position:fixed;width:8px;height:8px;background:${['#FFAFCC','#457B9D','#A8DADC','#FFD700','#FF6B6B'][Math.floor(Math.random()*5)]};border-radius:50%;left:${Math.random()*100}%;top:-10px;z-index:9999;animation:fall ${1+Math.random()*2}s ease-out forwards`;
+    c.appendChild(p)
+  }
+  const s=document.createElement('style');s.textContent='@keyframes fall{to{top:100%;opacity:0}}';document.head.appendChild(s);
+  setTimeout(()=>{c.remove();s.remove()},3000)
+}
+
+// ===== TOAST =====
+function showToast(msg,type='success'){
+  const t=document.createElement('div');t.className='toast';
+  t.style.background=type==='success'?'var(--success)':'var(--error)';
+  t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)
+}
+
+// ===== STATE =====
+let currentScreen='home';
+let currentGame=null;
+let gameQuestions=[];
+let currentQ=0;
+let score=0;
+let answered=false;
+
+// Load progress from localStorage
+let progress={p1:0,p2:0,p3:0,p4:0};
+try{
+  const saved=localStorage.getItem('vocab_decentralization_progress');
+  if(saved)progress=JSON.parse(saved);
+}catch(e){}
+
+function saveProgress(){
+  try{localStorage.setItem('vocab_decentralization_progress',JSON.stringify(progress))}catch(e){}
+}
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+// ===== RENDER =====
+function render(){
+  const app=document.getElementById('app');
+  if(!app){console.error("App container not found!");return}
+  switch(currentScreen){
+    case 'home':renderHome(app);break;
+    case 'vocab':renderVocabList(app);break;
+    case 'game':renderGame(app);break;
+    case 'result':renderResult(app);break;
+  }
+  if(window.lucide){lucide.createIcons();}
+}
+
+function renderHome(app){
+  const total=VOCAB.length;
+  const learned=Math.round((progress.p1+progress.p2+progress.p3+progress.p4)/4);
+  app.innerHTML=`
+  <div class="flex flex-col items-center justify-center min-h-full p-6 fade-in">
+    <div class="text-center mb-8">
+      <div class="text-6xl mb-4">🏙️</div>
+      <h1 class="text-2xl font-800 mb-2" style="color:var(--dark)">VOCABULARY GAME</h1>
+      <h2 class="text-xl font-700 mb-2" style="color:var(--accent)">DECENTRALIZATION</h2>
+      <p class="text-sm opacity-70" style="color:var(--dark)">IELTS 7.0 Vocabulary • ${total} từ vựng</p>
+    </div>
+    <div class="w-full max-w-md mb-8">
+      <div class="flex justify-between text-xs font-600 mb-2" style="color:var(--dark)"><span>Tiến độ chung</span><span>${learned}%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${learned}%"></div></div>
+    </div>
+    <div class="w-full max-w-md space-y-3">
+      <button onclick="startGame(1)" class="btn-primary w-full flex items-center gap-3 text-lg"><span>🔵</span> Phần 1: Multiple Choice</button>
+      <button onclick="startGame(2)" class="btn-pink w-full flex items-center gap-3 text-lg"><span>🟡</span> Phần 2: Fill in the Blank</button>
+      <button onclick="startGame(3)" class="btn-primary w-full flex items-center gap-3 text-lg"><span>🟣</span> Phần 3: Mixed Mode</button>
+      <button onclick="startGame(4)" class="btn-pink w-full flex items-center gap-3 text-lg"><span>🔴</span> Phần 4: Master Test</button>
+      <div class="border-t pt-3 mt-3" style="border-color:#ddd">
+        <button onclick="currentScreen='vocab';render()" class="w-full py-3 rounded-xl font-600 flex items-center justify-center gap-2" style="background:var(--dark);color:#fff"><span>📘</span> Danh sách từ vựng đầy đủ</button>
+      </div>
+    </div>
+    <div class="mt-6 grid grid-cols-4 gap-3 w-full max-w-md">
+      ${[['P1',progress.p1,'🔵'],['P2',progress.p2,'🟡'],['P3',progress.p3,'🟣'],['P4',progress.p4,'🔴']].map(([l,p,e])=>`<div class="text-center p-3 rounded-xl" style="background:#fff"><div class="text-lg">${e}</div><div class="text-xs font-600 mt-1">${l}</div><div class="text-xs opacity-60">${p}%</div></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function startGame(part){
+  currentGame=part;currentQ=0;score=0;answered=false;
+  if(part===1)generateMC();
+  else if(part===2)generateFIB();
+  else if(part===3)generateMixed();
+  else if(part===4)generateMaster();
+  currentScreen='game';render();
+}
+
+// ===== PART 1: MULTIPLE CHOICE =====
+function generateMC(){
+  gameQuestions=shuffle(VOCAB).map(v=>{
+    const wrongs=shuffle(VOCAB.filter(x=>x.id!==v.id)).slice(0,3);
+    const opts=shuffle([v,...wrongs]);
+    return{type:'mc',vocab:v,options:opts,correctId:v.id};
+  });
+}
+
+// ===== PART 2: FILL IN BLANK =====
+function generateFIB(){
+  gameQuestions=shuffle(VOCAB).map(v=>({type:'fib',vocab:v}));
+}
+
+// ===== PART 3: MIXED =====
+function generateMixed(){
+  const all=shuffle(VOCAB);
+  gameQuestions=[];
+  all.forEach((v,i)=>{
+    const mode=i%4;
+    if(mode===0){
+      const wrongs=shuffle(VOCAB.filter(x=>x.id!==v.id)).slice(0,3);
+      const opts=shuffle([v,...wrongs]);
+      gameQuestions.push({type:'mc',vocab:v,options:opts,correctId:v.id});
+    }else if(mode===1){
+      gameQuestions.push({type:'fib',vocab:v});
+    }else if(mode===2){
+      gameQuestions.push({type:'sentence',vocab:v});
+    }else{
+      const wrongs=shuffle(VOCAB.filter(x=>x.id!==v.id)).slice(0,3);
+      const opts=shuffle([v,...wrongs]);
+      gameQuestions.push({type:'mc_reverse',vocab:v,options:opts,correctId:v.id});
+    }
+  });
+}
+
+// ===== PART 4: MASTER =====
+function generateMaster(){
+  const all=shuffle(VOCAB);
+  gameQuestions=[];
+  all.forEach((v,i)=>{
+    const mode=i%2;
+    if(mode===0){
+      const wrongs=shuffle(VOCAB.filter(x=>x.id!==v.id)).slice(0,3);
+      const opts=shuffle([v,...wrongs]);
+      gameQuestions.push({type:'master_mc',vocab:v,options:opts,correctId:v.id});
+    }else{
+      gameQuestions.push({type:'sentence',vocab:v});
+    }
+  });
+}
+
+function renderGame(app){
+  if(currentQ>=gameQuestions.length){
+    const pct=Math.round(score/gameQuestions.length*100);
+    progress[`p${currentGame}`]=Math.max(progress[`p${currentGame}`],pct);
+    saveProgress();
+    currentScreen='result';render();return;
+  }
+  const q=gameQuestions[currentQ];
+  const titles=['','🔵 Multiple Choice','🟡 Fill in the Blank','🟣 Mixed Mode','🔴 Master Test'];
+  app.innerHTML=`
+  <div class="min-h-full p-4 fade-in">
+    <div class="max-w-lg mx-auto">
+      <div class="flex items-center justify-between mb-4">
+        <button onclick="currentScreen='home';render()" class="p-2 rounded-lg" style="background:#fff"><i data-lucide="arrow-left" style="width:20px;height:20px"></i></button>
+        <span class="font-700 text-sm" style="color:var(--dark)">${titles[currentGame]}</span>
+        <span class="text-sm font-600 px-3 py-1 rounded-full" style="background:#fff;color:var(--dark)">${currentQ+1}/${gameQuestions.length}</span>
+      </div>
+      <div class="progress-bar mb-6"><div class="progress-fill" style="width:${(currentQ/gameQuestions.length)*100}%"></div></div>
+      <div class="text-center mb-2"><span class="tag" style="background:var(--pink);color:var(--dark)">Score: ${score}/${currentQ}</span></div>
+      <div id="questionArea"></div>
+      <div id="explanationArea" class="mt-4"></div>
+      <div id="nextBtnArea" class="mt-4 text-center"></div>
+    </div>
+  </div>`;
+  lucide.createIcons();
+  renderQuestion(q);
+}
+
+function renderQuestion(q){
+  const area=document.getElementById('questionArea');
+  if(q.type==='mc'){
+    area.innerHTML=`
+    <div class="rounded-2xl p-5 mb-4" style="background:#fff">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="tag" style="background:var(--bg)">${q.vocab.pos}</span>
+        <button onclick="speakWord('${q.vocab.en.replace(/'/g,"\\'")}')" class="p-1 rounded-full" style="background:var(--pink)"><i data-lucide="volume-2" style="width:16px;height:16px"></i></button>
+      </div>
+      <p class="text-xl font-700 mb-1" style="color:var(--dark)">${q.vocab.vi}</p>
+      <p class="text-sm opacity-60">${q.vocab.enDef}</p>
+    </div>
+    <div class="space-y-3" id="optionsArea">
+      ${q.options.map((o,i)=>`<button class="option-btn" onclick="checkMC(${q.correctId},${o.id},this)">${String.fromCharCode(65+i)}. ${o.en}</button>`).join('')}
+    </div>`;
+  }else if(q.type==='mc_reverse'){
+    area.innerHTML=`
+    <div class="rounded-2xl p-5 mb-4" style="background:#fff">
+      <div class="flex items-center gap-2 mb-2"><span class="tag" style="background:var(--bg)">${q.vocab.pos}</span></div>
+      <p class="text-xl font-700 mb-1" style="color:var(--dark)">${q.vocab.en}</p>
+      <p class="text-sm opacity-60">Chọn nghĩa tiếng Việt đúng:</p>
+    </div>
+    <div class="space-y-3" id="optionsArea">
+      ${q.options.map((o,i)=>`<button class="option-btn" onclick="checkMC(${q.correctId},${o.id},this)">${String.fromCharCode(65+i)}. ${o.vi}</button>`).join('')}
+    </div>`;
+  }else if(q.type==='fib'){
+    area.innerHTML=`
+    <div class="rounded-2xl p-5 mb-4" style="background:#fff">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="tag" style="background:var(--bg)">${q.vocab.pos}</span>
+        <button onclick="speakWord('${q.vocab.en.replace(/'/g,"\\'")}')" class="p-1 rounded-full" style="background:var(--pink)"><i data-lucide="volume-2" style="width:16px;height:16px"></i></button>
+      </div>
+      <p class="text-xl font-700 mb-1" style="color:var(--dark)">${q.vocab.vi}</p>
+      <p class="text-sm opacity-60 mb-3">${q.vocab.enDef}</p>
+      ${q.vocab.usage?`<p class="text-sm mb-3" style="color:var(--accent)">💡 Cấu trúc: ${q.vocab.usage}</p>`:''}
+    </div>
+    <div class="flex gap-2">
+      <input id="fibInput" class="input-field flex-1" placeholder="Nhập từ/cụm từ tiếng Anh..." autocomplete="off" onkeydown="if(event.key==='Enter')checkFIB()">
+      <button onclick="checkFIB()" class="btn-primary">Kiểm tra</button>
+    </div>`;
+    setTimeout(()=>{const inp=document.getElementById('fibInput');if(inp)inp.focus()},100);
+  }else if(q.type==='sentence'){
+    const sent=q.vocab.example.replace(/"/g,'');
+    const word=q.vocab.en.split('/')[0].trim();
+    const blank=sent.replace(new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),'______');
+    area.innerHTML=`
+    <div class="rounded-2xl p-5 mb-4" style="background:#fff">
+      <div class="flex items-center gap-2 mb-2"><span class="tag" style="background:var(--bg)">${q.vocab.pos}</span></div>
+      <p class="text-sm opacity-60 mb-2">Điền từ/cụm từ thích hợp vào chỗ trống:</p>
+      <p class="text-lg font-600 mb-2" style="color:var(--dark)">${blank}</p>
+      <p class="text-sm" style="color:var(--accent)">💡 Nghĩa: ${q.vocab.vi}</p>
+    </div>
+    <div class="flex gap-2">
+      <input id="fibInput" class="input-field flex-1" placeholder="Nhập từ..." autocomplete="off" onkeydown="if(event.key==='Enter')checkSentence()">
+      <button onclick="checkSentence()" class="btn-primary">Kiểm tra</button>
+    </div>`;
+    setTimeout(()=>{const inp=document.getElementById('fibInput');if(inp)inp.focus()},100);
+  }else if(q.type==='master_mc'){
+    area.innerHTML=`
+    <div class="rounded-2xl p-5 mb-4" style="background:#fff">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag" style="background:#FFD700;color:#000;font-weight:bold">⭐ MASTER MODE</span>
+        <span class="text-xs font-600" style="color:var(--error)">HARD</span>
+      </div>
+      <p class="text-sm opacity-70 mb-3">📖 Read the definition and guess the phrase:</p>
+      <div class="rounded-xl p-4 mb-4" style="background:#f9f3e8;border-left:4px solid var(--accent)">
+        <p class="font-700 text-lg leading-relaxed" style="color:var(--dark)">${q.vocab.enDef}</p>
+      </div>
+      <p class="text-xs opacity-60">Choose the correct English word/phrase:</p>
+    </div>
+    <div class="space-y-3" id="optionsArea">
+      ${q.options.map((o,i)=>`<button class="option-btn" onclick="checkMC(${q.correctId},${o.id},this)">${String.fromCharCode(65+i)}. ${o.en}</button>`).join('')}
+    </div>`;
+  }
+  lucide.createIcons();
+}
+
+function checkMC(correctId,chosenId,btn){
+  if(answered)return;answered=true;
+  const btns=document.querySelectorAll('.option-btn');
+  btns.forEach(b=>{b.style.pointerEvents='none';});
+  if(chosenId===correctId){
+    btn.classList.add('correct');score++;playDing();showConfetti();
+    showToast('✅ Chính xác!','success');
+  }else{
+    btn.classList.add('wrong');playBuzz();
+    btns.forEach(b=>{if(b.textContent.includes(VOCAB.find(v=>v.id===correctId).en))b.classList.add('correct')});
+    showToast('❌ Sai rồi!','error');
+  }
+  showExplanation(gameQuestions[currentQ].vocab);showNextBtn();
+}
+
+function checkFIB(){
+  if(answered)return;
+  const inp=document.getElementById('fibInput');
+  const val=inp.value.trim().toLowerCase();
+  const q=gameQuestions[currentQ];
+  const correct=q.vocab.en.toLowerCase();
+  const alts=[correct];
+  answered=true;
+  if(alts.some(a=>val===a||val===a.replace(/\s+/g,' '))||correct.includes(val)&&val.length>3){
+    inp.style.borderColor='var(--success)';inp.style.background='#d4edda';score++;playDing();showConfetti();
+    showToast('✅ Chính xác!','success');
+  }else{
+    inp.style.borderColor='var(--error)';inp.style.background='#f8d7da';playBuzz();
+    showToast(`Đáp án: ${q.vocab.en}`,'error');
+  }
+  showExplanation(q.vocab);showNextBtn();
+}
+
+function checkSentence(){
+  if(answered)return;
+  const inp=document.getElementById('fibInput');
+  const val=inp.value.trim().toLowerCase();
+  const q=gameQuestions[currentQ];
+  const word=q.vocab.en.toLowerCase().split('/')[0].trim();
+  const words=[word];
+  answered=true;
+  if(words.some(w=>val===w||val.includes(w)&&val.length>3)){
+    inp.style.borderColor='var(--success)';inp.style.background='#d4edda';score++;playDing();showConfetti();
+    showToast('✅ Chính xác!','success');
+  }else{
+    inp.style.borderColor='var(--error)';inp.style.background='#f8d7da';playBuzz();
+    showToast(`Đáp án: ${q.vocab.en}`,'error');
+  }
+  showExplanation(q.vocab);showNextBtn();
+}
+
+function showNextBtn(){
+  document.getElementById('nextBtnArea').innerHTML=`<button onclick="nextQuestion()" class="btn-primary text-lg px-8">Câu tiếp theo →</button>`;
+}
+
+function nextQuestion(){currentQ++;answered=false;renderGame(document.getElementById('app'));}
+
+function showExplanation(v){
+  document.getElementById('explanationArea').innerHTML=`
+  <div class="rounded-2xl p-5 fade-in" style="background:#f0f8ff;border:2px solid #d0e8f0">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="font-700 text-lg" style="color:var(--accent)">📖 Deep Dive: Chi tiết từ vựng</span>
+      <button onclick="speakWord('${v.en.replace(/'/g,"\\'")}')" class="p-1 rounded-full" style="background:var(--pink)"><i data-lucide="volume-2" style="width:14px;height:14px"></i></button>
+    </div>
+
+    <!-- WORD HEADER -->
+    <div class="p-4 rounded-xl mb-4" style="background:linear-gradient(135deg,#457B9D15 0%,#FFAFCC15 100%);border:1px solid var(--accent)">
+      <p class="font-800 text-xl" style="color:var(--dark)">${v.en}</p>
+      <p class="text-xs opacity-70 mt-1">${v.ipa} <span class="tag" style="background:var(--accent);color:#fff">${v.pos}</span></p>
+    </div>
+
+    <!-- MEANING -->
+    <div class="mb-4">
+      <p class="text-sm font-700 mb-2" style="color:#fff;background:var(--accent);padding:8px 12px;border-radius:8px;display:inline-block">🟢 MEANING (Nghĩa)</p>
+      <div class="mt-3 space-y-2">
+        <div class="p-3 rounded-lg" style="background:#fff;border-left:4px solid #28a745">
+          <p class="text-xs opacity-60 mb-1">🇻🇳 Tiếng Việt:</p>
+          <p class="font-600" style="color:var(--dark)">${v.vi}</p>
+        </div>
+        <div class="p-3 rounded-lg" style="background:#fff;border-left:4px solid #007bff">
+          <p class="text-xs opacity-60 mb-1">🇬🇧 English Definition:</p>
+          <p class="text-sm leading-relaxed">${v.enDef}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLLOCATIONS -->
+    <div class="mb-4 p-3 rounded-lg" style="background:#fff;border:1px solid #ffc107">
+      <p class="text-sm font-700 mb-2" style="color:#856404">🔗 COLLOCATIONS - Kết hợp từ thường gặp</p>
+      <div class="space-y-2">
+        ${v.collocations.map((col,i)=>`<div class="text-sm"><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-weight:600">${col}</span> <span style="opacity:.7">${v.collocationVi[i]}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <!-- SYNONYMS -->
+    <div class="mb-4 p-3 rounded-lg" style="background:#fff;border:1px solid #17a2b8">
+      <p class="text-sm font-700 mb-2" style="color:#0c5460">↔️ SYNONYMS - Từ đồng nghĩa</p>
+      <div class="space-y-2">
+        ${v.synonyms.map((syn,i)=>`<div class="text-sm"><span style="background:#e2f4f8;padding:2px 8px;border-radius:6px;font-weight:600">${syn}</span> <span style="opacity:.7">${v.synonymsVi[i]}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <!-- ANTONYMS -->
+    <div class="mb-4 p-3 rounded-lg" style="background:#fff;border:1px solid #dc3545">
+      <p class="text-sm font-700 mb-2" style="color:#721c24">⚖️ ANTONYMS - Từ trái nghĩa</p>
+      <div class="space-y-2">
+        ${v.antonyms.map((ant,i)=>`<div class="text-sm"><span style="background:#f8d7da;padding:2px 8px;border-radius:6px;font-weight:600">${ant}</span> <span style="opacity:.7">${v.antonymsVi[i]}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <!-- WORD FAMILY -->
+    <div class="mb-4 p-3 rounded-lg" style="background:#fff;border:1px solid #6f42c1">
+      <p class="text-sm font-700 mb-2" style="color:#3e1f47">👨‍👩‍👧 WORD FAMILY - Họ từ liên quan</p>
+      <div class="space-y-2">
+        ${v.wordFamily.map((wf,i)=>`<div class="text-sm"><span style="background:#e7d4f5;padding:2px 8px;border-radius:6px;font-weight:600">${wf}</span> <span style="opacity:.7">${v.wordFamilyVi[i]}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <!-- USAGE (if available) -->
+    ${v.usage?`<div class="mb-4 p-3 rounded-lg" style="background:#fff;border:1px solid var(--accent)">
+      <p class="text-sm font-700 mb-2" style="color:var(--dark)">💡 USAGE - Cách dùng</p>
+      <p class="text-sm p-2 rounded" style="background:#f9f9f9;color:var(--dark)">${v.usage}</p>
+    </div>`:''}
+
+    <!-- EXAMPLE -->
+    <div class="p-4 rounded-lg" style="background:#fff3cd;border:2px solid #ffc107">
+      <p class="text-sm font-700 mb-3" style="color:#856404">📝 REAL-WORLD EXAMPLE - Ví dụ thực tế</p>
+      <div class="mb-3 p-3 rounded" style="background:#fff;border-left:4px solid #ffc107">
+        <p class="text-sm italic font-600 mb-2" style="color:var(--dark)">English:</p>
+        <p class="text-sm leading-relaxed">${v.example}</p>
+      </div>
+      <div class="p-3 rounded" style="background:#fff;border-left:4px solid var(--accent)">
+        <p class="text-sm italic font-600 mb-2" style="color:var(--dark)">Tiếng Việt:</p>
+        <p class="text-sm leading-relaxed" style="color:var(--accent)">${v.exampleVi}</p>
+      </div>
+    </div>
+  </div>`;
+  lucide.createIcons();
+}
+
+function renderResult(app){
+  const total=gameQuestions.length;
+  const pct=Math.round(score/total*100);
+  const emoji=pct>=80?'🏆':pct>=60?'👍':pct>=40?'💪':'📖';
+  const msg=pct>=80?'Xuất sắc!':pct>=60?'Khá tốt!':pct>=40?'Cần ôn thêm!':'Hãy cố gắng hơn!';
+  if(pct>=80)showConfetti();
+  app.innerHTML=`
+  <div class="flex flex-col items-center justify-center min-h-full p-6 fade-in">
+    <div class="text-6xl mb-4">${emoji}</div>
+    <h2 class="text-3xl font-800 mb-2" style="color:var(--dark)">${msg}</h2>
+    <p class="text-lg mb-6 opacity-70">Điểm: ${score}/${total} (${pct}%)</p>
+    <div class="w-full max-w-xs mb-6"><div class="progress-bar" style="height:12px"><div class="progress-fill" style="width:${pct}%"></div></div></div>
+    <div class="space-y-3 w-full max-w-xs">
+      <button onclick="startGame(${currentGame})" class="btn-primary w-full">🔄 Chơi lại</button>
+      <button onclick="currentScreen='home';render()" class="btn-pink w-full">🏠 Về trang chủ</button>
+    </div>
+  </div>`;
+}
+
+// ===== VOCAB LIST =====
+function renderVocabList(app){
+  app.innerHTML=`
+  <div class="min-h-full p-4 fade-in">
+    <div class="max-w-2xl mx-auto">
+      <div class="flex items-center gap-3 mb-4">
+        <button onclick="currentScreen='home';render()" class="p-2 rounded-lg" style="background:#fff"><i data-lucide="arrow-left" style="width:20px;height:20px"></i></button>
+        <h2 class="text-xl font-700" style="color:var(--dark)">📘 Từ vựng đầy đủ (${VOCAB.length} từ)</h2>
+      </div>
+      <input id="vocabSearch" class="input-field mb-4" placeholder="🔍 Tìm kiếm từ vựng..." oninput="filterVocab(this.value)">
+      <div id="vocabContainer">${renderVocabCards(VOCAB)}</div>
+    </div>
+  </div>`;
+  lucide.createIcons();
+}
+
+function renderVocabCards(list){
+  return list.map(v=>`
+  <div class="vocab-card card-hover fade-in">
+    <div class="flex items-start justify-between mb-2">
+      <div>
+        <span class="font-700 text-lg" style="color:var(--dark)">${v.en}</span>
+        <span class="ml-2 text-sm opacity-60">${v.ipa}</span>
+        <span class="tag ml-2" style="background:var(--bg)">${v.pos}</span>
+      </div>
+      <button onclick="speakWord('${v.en.replace(/'/g,"\\'")}')" class="p-1 rounded-full flex-shrink-0" style="background:var(--pink)"><i data-lucide="volume-2" style="width:16px;height:16px"></i></button>
+    </div>
+    <p class="font-600 mb-1" style="color:var(--accent)">${v.vi}</p>
+    <p class="text-sm opacity-70 mb-2">${v.enDef}</p>
+    ${v.usage?`<p class="text-sm mb-2" style="color:var(--accent)">💡 ${v.usage}</p>`:''}
+    <details class="mt-2">
+      <summary class="text-sm font-600 cursor-pointer" style="color:var(--accent)">Xem chi tiết ▾</summary>
+      <div class="mt-2 space-y-1 text-sm pl-2" style="border-left:2px solid var(--bg)">
+        <p><strong>Collocations:</strong> ${v.collocations.join(', ')}</p>
+        <p><strong>Synonyms:</strong> ${v.synonyms.join(', ')}</p>
+        <p><strong>Antonyms:</strong> ${v.antonyms.join(', ')}</p>
+        <p><strong>Word family:</strong> ${v.wordFamily.join(', ')}</p>
+        <p class="mt-1 p-2 rounded-lg" style="background:#f8f9fa"><strong>Example:</strong> ${v.example}</p>
+        <p class="p-2 rounded-lg" style="background:#f0f8ff;color:var(--accent)"><strong>Dịch:</strong> ${v.exampleVi}</p>
+      </div>
+    </details>
+  </div>`).join('');
+}
+
+function filterVocab(term){
+  const t=term.toLowerCase();
+  const filtered=VOCAB.filter(v=>v.en.toLowerCase().includes(t)||v.vi.toLowerCase().includes(t)||v.enDef.toLowerCase().includes(t));
+  document.getElementById('vocabContainer').innerHTML=renderVocabCards(filtered);
+  lucide.createIcons();
+}
+
+// ===== START =====
+render();
+  </script>
+ </body>
+</html>
